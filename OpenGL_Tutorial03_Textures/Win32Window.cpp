@@ -5,6 +5,8 @@
 // GLFW
 #include <GLFW\glfw3.h>
 
+#include "SOIL2\SOIL2.h"
+
 #include "Win32Window.h"
 
 #include "Shader.h"
@@ -28,7 +30,11 @@ GLFWwindow *Win32Window::CreateWindow(GLint width, GLint height, const char* tit
 		return nullptr;
 
 	// 2) Initialize GLFW
-	glfwInit();
+	if (!glfwInit())
+	{
+		std::cout << "glfwInit() failed\n";
+		return nullptr;
+	}
 
 	// 3) Set all the required options for GLFW
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -85,39 +91,95 @@ void Win32Window::Run(GLFWwindow* window)
 	std::cout << "OpenGL vendor: " << glGetString(GL_VENDOR) << std::endl;
 	std::cout << "OpenGL renderer: " << glGetString(GL_RENDERER) << std::endl << std::endl;
 
+	// Enable the Blending
+	// Enabling alpha support for images: png, .....
+	glEnable(GL_BLEND);
+	// Pixels can be drawn using a function that blends the incoming (source) RGBA 
+	// values with the RGBA values that are already in the frame buffer (the destination values).
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	/**
 	* Define our vertex data that we are going to draw it
 	*/
 	// Create a Shader object
 	Shader ourShader("core.vs", "core.frag");
-
+	// Set up vertex
 	GLfloat vertices[] = {
-		//Position				// Color
-		0.0f, 0.5f, 0.0f,		 1.0f, 0.0f, 0.0f,		// Top middle vertex
-		0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,		// Bottom right vertex
-		-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f		// Bottom left vertex
+		//Position				// Color				// Texture Coordinates
+		0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,		1.0f, 1.0f,		// Top right vertex
+		0.5f, -0.5f, 0.0f,		1.0f, 1.0f, 1.0f,		1.0f, 0.0f,		// Bottom right vertex
+		-0.5f, -0.5f, 0.0f,		1.0f, 0.0f, 0.0f,		0.0f, 0.0f,		// Bottom left vertex
+		-0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 1.0f,		0.0f, 1.0f		// Top left vertex
 	};
-	// Create the Vertex array buffer object and Binding the vertex array object
+	GLfloat vertices2[] = {
+		//Position				// Color				// Texture Coordinates
+		1.0f, 1.0f, 0.0f,		1.0f, 0.0f, 0.0f,		1.0f, 1.0f,		// Top right vertex
+		1.0f, -1.0f, 0.0f,		1.0f, 1.0f, 1.0f,		1.0f, 0.0f,		// Bottom right vertex
+		-1.0f, -1.0f, 0.0f,		1.0f, 0.0f, 0.0f,		0.0f, 0.0f,		// Bottom left vertex
+		-1.0f, 1.0f, 0.0f,		1.0f, 0.0f, 1.0f,		0.0f, 1.0f		// Top left vertex
+	};
+	// Set up indecies
+	GLuint indices[] = {
+		//0, 1, 2,	// First triangle
+		//1, 2, 3		// Second triangle
+		0, 1, 3,
+		1, 2, 3
+	};
+
+	// Create(Generate) the Vertext Array object and the Vertex Buffer Object
 	GLuint VAO;
-	/*glCreateVertexArrays(1, &Vao);*/
 	glGenVertexArrays(1, &VAO);
+	// Bind the VAO so the next vbo will be bound to it automatically
 	glBindVertexArray(VAO);
-	// Create the Vertex buffer object ,then binding and setting the vertex buffers
+	// Generate the Vertex buffer object ,then bind an area of storage for our VBO
 	GLuint VBO;
-	/*glCreateBuffers(1, &VBO);*/
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// Define the data for our VBO
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// pointer
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (GLvoid*)0);
-	glEnableVertexAttribArray(0); // enabling the vertex array
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));	// for the color
-	glEnableVertexAttribArray(1); // enabling the vertex array
-								  // unbinding
-								  //glBindBuffer(GL_ARRAY_BUFFER, 0); // 0 means unbinding any buffer object previously bound.
+	// Create the indices 
+	GLuint EBO;
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//
+	// Pointer to Attribute
+	// Tell OpenGL How to Link the VBO data with the a specific attribute in the Vertex Shader. 
+	//
+	// Position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)0);
+	glEnableVertexAttribArray(0); // enabling the vertex attribute array (The attribute)
+	// Color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));	// for the color
+	glEnableVertexAttribArray(1); // enabling the vertex attribute array (The attribute)
+	// Texture attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(6 * sizeof(GL_FLOAT)));	// for the texture
+	glEnableVertexAttribArray(2);
+	// unbinding
+	//glBindBuffer(GL_ARRAY_BUFFER, 0); // 0 means unbinding any buffer object previously bound.
 	glBindVertexArray(0); // 0 means break (unbinding) the existing vertex array object binding.
 
+	/**
+	* Loading the textures using SOIL
+	*/
+	// Create the texture
+	GLuint texture;
+	int width, height;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	// Setting the texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// Set the texture filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Loading and creating the texture then generating the mipmaps
+	unsigned char* image = SOIL_load_image("ovechki.jpg", &width, &height, 0, SOIL_LOAD_RGBA);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	// Unbind the texture
+	glBindTexture(GL_TEXTURE_2D, 0);
 	// 11) Now create our game loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -126,14 +188,20 @@ void Win32Window::Run(GLFWwindow* window)
 
 		// Render
 		// Clear the colorbuffer
-		glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+		glClearColor(0.25f, 0.51f, 0.51f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Draw opengl stuff
 		ourShader.Use();
-		//glUseProgram(shaderProgram);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture"), 0);
+
+
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0); // 0 means break (unbinding) the existing vertex array object binding.
 		
 		// Swap the screen buffers
@@ -145,11 +213,13 @@ void Win32Window::Run(GLFWwindow* window)
 		*/
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, GL_TRUE);
+
 	}
 
 	// deallocating the resources that are out of use
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 
 	// 12) Terminate GLFW, clearing any resources allocated by GLFW
 	glfwTerminate();

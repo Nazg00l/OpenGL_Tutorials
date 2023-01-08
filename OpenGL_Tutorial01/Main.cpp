@@ -12,10 +12,10 @@
 const GLint WIDTH = 800, HEIGHT = 600;
 
 const GLchar *vertexShaderSource = "#version 330 core\n"
-"layout (location = 0 ) in vec3 position\n"
+"layout (location = 0 ) in vec3 position;\n"
 "void main()\n"
 "{\n"
-"gl_Position = vec4( position.x, position.y, position.z, 1.0 );\n"
+"gl_Position = vec4( position.x, position.y, position.z, 1.0f );\n"
 "}\n";
 
 const GLchar *fragmentShaderSource = "#version 330 core\n"
@@ -29,7 +29,11 @@ const GLchar *fragmentShaderSource = "#version 330 core\n"
 int main(int argc, char* argv[])
 {
 	// Init GLFW
-	glfwInit();
+	if (!glfwInit())
+	{
+		std::cout << "glfwInit() failed\n";
+		return -1;
+	}
 
 	// Set all the required options for GLFW
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -39,7 +43,7 @@ int main(int argc, char* argv[])
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tutorial 01", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tutorial 1", nullptr, nullptr);
 	
 	/**
 	* This is the actual or the accurate representation of what our window is
@@ -70,13 +74,20 @@ int main(int argc, char* argv[])
 	// Define the viewport dimensions
 	glViewport(0, 0, ScreenWidth, ScreenHeight);
 
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
 	
+	// ======================================
+	/** Create the shaders and its program */
+	//=======================================
+
+	// Create a Shader handle of type vertex shader
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	// Manipulate the desired shader with the source code
+	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+	// Compile the shader after filling it with the source code
+	glCompileShader(vertexShader);
+	// Check if there was a compilation error
 	GLint success;
 	GLchar infoLog[512];
-
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 	if ( !success )
 	{
@@ -84,10 +95,13 @@ int main(int argc, char* argv[])
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION::FAILED\n" << infoLog << std::endl;
 	}
 
+	// Create a Shader handle of type fragment shader
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	// Manipulate the desired shader with the source code
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	// Compile the shader after filling it with the source code
 	glCompileShader(fragmentShader);
-
+	// Check if there was a compilation error
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{

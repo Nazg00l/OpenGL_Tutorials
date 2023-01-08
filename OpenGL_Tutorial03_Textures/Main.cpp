@@ -6,7 +6,7 @@
 int main(int argc, char* argv[])
 {
 	GLFWwindow *window = nullptr;
-	window = Win32Window::CreateWindow(1024, 768, "Tutorial 3 Textures");
+	window = Win32Window::CreateWindow(1024, 768, "OpenGL Tutorial 3 Textures");
 
 	if (window == nullptr) {
 		return EXIT_FAILURE;

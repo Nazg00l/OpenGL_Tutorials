@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// 4) Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGH, "White Triangle", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGH, "OpenGL Drawing White Triangle", nullptr, nullptr);
 
 	// 5) 
 	/**

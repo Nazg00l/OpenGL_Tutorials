@@ -17,7 +17,11 @@ int main(int argc, char* argv[])
 {
 
 	// 2) Init GLFW
-	glfwInit();
+	if (!glfwInit())
+	{
+		std::cout << "glfwInit() failed\n";
+		return -1;
+	}
 
 	// 3) Set all the required options for GLFW
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -27,7 +31,7 @@ int main(int argc, char* argv[])
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// 4) Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Window Context Creation", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL Tutorial 2 Shader Files", nullptr, nullptr);
 	// 5) 
 	/**
 	* This is the actual or the accurate representation of what our window is
@@ -77,23 +81,26 @@ int main(int argc, char* argv[])
 		0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,		// Bottom right vertex
 		-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f		// Bottom left vertex
 	};
-	// Create the Vertex array buffer object and Binding the vertex array object
+
+	// Create(Generate) the Vertext Array object and the Vertex Buffer Object
 	GLuint VAO;
 	/*glCreateVertexArrays(1, &Vao);*/
 	glGenVertexArrays(1, &VAO);
+	// Bind the VAO so the next vbo will be bound to it automatically
 	glBindVertexArray(VAO);
-	// Create the Vertex buffer object ,then binding and setting the vertex buffers
+	// Generate the Vertex buffer object ,then bind an area of storage for our VBO
 	GLuint VBO;
 	/*glCreateBuffers(1, &VBO);*/
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// Define the data for our VBO
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// pointer
+	// Tell OpenGL How to Link the VBO data with the a specific attribute in the Vertex Shader. 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GL_FLOAT), (GLvoid*) 0);
-	glEnableVertexAttribArray(0); // enabling the vertex array
+	glEnableVertexAttribArray(0); // enabling the vertex attribute array (The attribute)
 
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));	// for the color
-	glEnableVertexAttribArray(1); // enabling the vertex array
+	glEnableVertexAttribArray(1); // enabling the vertex attribute array (The attribute)
 	// unbinding
 	//glBindBuffer(GL_ARRAY_BUFFER, 0); // 0 means unbinding any buffer object previously bound.
 	glBindVertexArray(0); // 0 means break (unbinding) the existing vertex array object binding.
@@ -107,7 +114,7 @@ int main(int argc, char* argv[])
 
 		// Render
 		// Clear the colorbuffer
-		glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+		glClearColor(0.2f, 1.0f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Draw opengl stuff
